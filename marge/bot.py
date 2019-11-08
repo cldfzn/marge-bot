@@ -158,21 +158,25 @@ class Bot:
             )
             try:
                 batch_merge_job.execute()
-                return
             except batch_job.CannotBatch as err:
                 log.warning('BatchMergeJob aborted: %s', err)
             except batch_job.CannotMerge as err:
                 log.warning('BatchMergeJob failed: %s', err)
-                return
             except git.GitError as err:
                 log.exception('BatchMergeJob failed: %s', err)
-        log.info('Attempting to merge the oldest MR...')
-        merge_request = merge_requests[0]
-        merge_job = self._get_single_job(
-            project=project, merge_request=merge_request, repo=repo,
-            options=self._config.merge_opts,
-        )
-        merge_job.execute()
+        else:
+            self._merge_all_ready(project, merge_requests, repo, self._config.merge_opts)
+
+    def _merge_all_ready(self, project, merge_requests, repo, options):
+        log.info('Attempting to merge all ready MR starting with oldest...')
+        for merge_request in merge_requests:
+            merge_job = self._get_single_job(
+                project=project,
+                merge_request=merge_request,
+                repo=repo,
+                options=options,
+            )
+            merge_job.execute()
 
     def _get_single_job(self, project, merge_request, repo, options):
         return single_merge_job.SingleMergeJob(

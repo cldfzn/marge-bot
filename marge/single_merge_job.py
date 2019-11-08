@@ -5,7 +5,7 @@ from datetime import datetime
 
 from . import git, gitlab
 from .commit import Commit
-from .job import CannotMerge, GitLabRebaseResultMismatch, MergeJob, SkipMerge
+from .job import CannotMerge, InsufficientApprovals, GitLabRebaseResultMismatch, MergeJob, SkipMerge
 
 
 class SingleMergeJob(MergeJob):
@@ -23,7 +23,7 @@ class SingleMergeJob(MergeJob):
             approvals = merge_request.fetch_approvals()
             self.update_merge_request_and_accept(approvals)
             log.info('Successfully merged !%s.', merge_request.info['iid'])
-        except SkipMerge as err:
+        except (InsufficientApprovals, SkipMerge) as err:
             log.warning("Skipping MR !%s: %s", merge_request.info['iid'], err.reason)
         except CannotMerge as err:
             message = "I couldn't merge this branch: %s" % err.reason

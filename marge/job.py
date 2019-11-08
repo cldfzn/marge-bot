@@ -41,7 +41,7 @@ class MergeJob:
         log.debug('Ensuring MR %r is mergeable', merge_request)
 
         if merge_request.work_in_progress:
-            raise CannotMerge("Sorry, I can't merge requests marked as Work-In-Progress!")
+            raise SkipMerge("Sorry, I can't merge requests marked as Work-In-Progress!")
 
         if merge_request.squash and self._options.requests_commit_tagging:
             raise CannotMerge(
@@ -50,7 +50,7 @@ class MergeJob:
 
         approvals = merge_request.fetch_approvals()
         if not approvals.sufficient:
-            raise CannotMerge(
+            raise InsufficientApprovals(
                 'Insufficient approvals '
                 '(have: {0.approver_usernames} missing: {0.approvals_left})'.format(approvals)
             )
@@ -495,6 +495,10 @@ class CannotMerge(Exception):
             return 'Unknown reason!'
 
         return args[0]
+
+
+class InsufficientApprovals(CannotMerge):
+    pass
 
 
 class SkipMerge(CannotMerge):

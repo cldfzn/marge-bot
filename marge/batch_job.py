@@ -5,7 +5,7 @@ from time import sleep
 from . import git
 from . import gitlab
 from .commit import Commit
-from .job import MergeJob, CannotMerge, SkipMerge
+from .job import MergeJob, CannotMerge, InsufficientApprovals, SkipMerge
 from .merge_request import MergeRequest
 from .pipeline import Pipeline
 
@@ -84,7 +84,7 @@ class BatchMergeJob(MergeJob):
         for merge_request in merge_requests:
             try:
                 self.ensure_mergeable_mr(merge_request)
-            except (CannotBatch, SkipMerge) as ex:
+            except (CannotBatch, InsufficientApprovals, SkipMerge) as ex:
                 log.warning('Skipping unbatchable MR: "%s"', ex)
             except CannotMerge as ex:
                 log.warning('Skipping unmergeable MR: "%s"', ex)
